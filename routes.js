@@ -2,6 +2,8 @@ const fs = require('fs');
 
 const { dummyUsers } = require('./dummyUsers');
 
+const newUsers = [...dummyUsers];
+
 function handleRequest(req, res) {
   const url = req.url;
   const method = req.method;
@@ -32,10 +34,12 @@ function handleRequest(req, res) {
     return req.on('end', () => {
       const parsedMessage = Buffer.concat(bodyMessage).toString();
       console.log(parsedMessage);
+      const message = parsedMessage.split('=')[1];
+      newUsers.push(message);
 
-      fs.writeFile('username.txt', parsedMessage, (err) => {
+      fs.writeFile('username.txt', message, (err) => {
         res.statusCode = 302;
-        res.setHeader('Location', '/');
+        res.setHeader('Location', '/users');
 
         return res.end();
       })
@@ -45,7 +49,7 @@ function handleRequest(req, res) {
   if (url === '/users') {
     res.write('<html>');
     res.write('<head><title>Hello, Server!</title></head>');
-    res.write(`<body><ul>${dummyUsers.map((item) => `<li>${item}</li>`).join('')}</ul></body>`);
+    res.write(`<body><ul>${newUsers.map((item) => `<li>${item}</li>`).join('')}</ul></body>`);
     res.write('</html>');
     return res.end();
   }
