@@ -4,8 +4,7 @@ const { dummyUsers } = require('./dummyUsers');
 
 function handleRequest(req, res) {
   const url = req.url;
-
-  res.setHeader('Content-Type', 'text/html');
+  const method = req.method;
 
   if (url === '/') {
     res.write('<html>');
@@ -23,6 +22,26 @@ function handleRequest(req, res) {
     return res.end();
   }
 
+  if (url === '/create-user' && method === 'POST') {
+    const bodyMessage = [];
+
+    req.on('data', (chunk) => {
+      bodyMessage.push(chunk);
+    });
+
+    return req.on('end', () => {
+      const parsedMessage = Buffer.concat(bodyMessage).toString();
+      console.log(parsedMessage);
+
+      fs.writeFile('username.txt', parsedMessage, (err) => {
+        res.statusCode = 302;
+        res.setHeader('Location', '/');
+
+        return res.end();
+      })
+    });
+  }
+
   if (url === '/users') {
     res.write('<html>');
     res.write('<head><title>Hello, Server!</title></head>');
@@ -31,6 +50,7 @@ function handleRequest(req, res) {
     return res.end();
   }
 
+  res.setHeader('Content-Type', 'text/html');
   res.write('<html>');
   res.write('<head><title>Greetings</title></head>');
   res.write('<body><h1>Hello from Node.js Server</h1></body>');
